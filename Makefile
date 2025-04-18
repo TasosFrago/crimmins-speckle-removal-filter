@@ -1,10 +1,11 @@
 # Default to clang, but allow override via `make COMPILER=gcc`
+FLAGS = -Wall -Werror -std=c99
 ifeq ($(COMP),gcc)
   CC = gcc
-  FLAGS = -Wall -Werror -std=c99 -fopenmp
+  FLAGS += -Wno-unknown-pragmas -fopenmp
 else
   CC = clang
-  FLAGS = -Wall -Werror -fsanitize=address -std=c99 -fcolor-diagnostics -fansi-escape-codes -fno-omit-frame-pointer -fopenmp=libomp
+  FLAGS += -fsanitize=address -fcolor-diagnostics -fansi-escape-codes -fno-omit-frame-pointer -fopenmp=libomp
 endif
 
 INCLUDES = -I./src/
