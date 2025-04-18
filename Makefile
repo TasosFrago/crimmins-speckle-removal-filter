@@ -2,6 +2,7 @@ CC = clang
 
 FLAGS = -Wall -fcolor-diagnostics -fansi-escape-codes -Werror -fsanitize=address -fno-omit-frame-pointer -std=c99 -fopenmp=libomp
 
+
 INCLUDES = -I./src/
 
 FLAGS += $(INCLUDES)
