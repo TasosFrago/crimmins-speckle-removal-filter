@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -104,6 +105,7 @@ void crimmings_speckle_removal_filter_par(uint8_t *image, uint32_t width, uint32
 	uint8_t *tmp_image = malloc(width * height);
 	assert(tmp_image != NULL && "Failed allocating temp image buffer");
 	const int chunk = height / omp_get_max_threads();
+	printf("Chunk = %d\n", chunk);
 
 	// SWAP(image, tmp_image);
 	memcpy(tmp_image, image, width * height);
