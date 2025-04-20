@@ -1,0 +1,62 @@
+%!TEX program = xelatex
+\documentclass[12pt]{article}
+\usepackage[top=1.5cm, left=2cm, right=2cm, bottom=1.5cm]{geometry} % Symmetrical margins
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{polyglossia}
+% \usepackage[polutonikogreek,english]{hyphenat}
+\usepackage{xunicode}
+\usepackage{xltxtra}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{indentfirst}
+\usepackage{nicefrac}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{minted}
+%\usepackage[utf8]{inputenc}
+%\usepackage[greek,english]{babel}
+\setdefaultlanguage[variant=monotonic]{greek}
+\setotherlanguage{english}
+
+\setmainfont[Scale=1.09]{DejaVuSans}
+\newfontfamily\greekfont[Scale=1.09]{FreeSerif}
+\newfontfamily\greekfontsf[Scale=1.09]{FreeSans}
+\newfontfamily\greekfonttt[Scale=1.09]{FreeMono}
+\setromanfont{FreeSerif}
+\setsansfont{FreeSans}
+\setmonofont{FreeMono}
+
+\setminted{fontsize=\small}
+\usemintedstyle{perldoc}
+% \definecolor{monokai}{RGB}{39,40,34}
+\definecolor{paraiso-light}{RGB}{231, 233, 219}
+
+
+\usepackage{titlesec}
+
+\titleformat{\section}
+    {\normalfont\Large\bfseries}
+    {\thesection}
+    {1.5em}
+    {}
+%\setlength{\droptitle}{-3cm}
+
+\begin{document}
+
+\title{Crimmins Speckle Removal Filter}
+\author{Αναστάσιος Φραγκόπουλος 58633}
+\date{}
+
+
+\input{./titlePage.tex}
+
+\section{Σειριακός Αλγόριθμος}
+
+Ο Crimmins Speckle removal είναι ένας αλγόριθμος που μειώνει από ασπρόμαυρες εικόνες τον θόρυβο salt-and-pepper, που είναι ένα είδος θορύβου που δίνει την εμφάνιση μίας εικόνας πασπαλισμένης με αλάτι και πιπέρι. Οι επανειλημμένες χρήσεις του αλγόριθμου σε μια εικόνα δίνουν καλύτερα αποτελέσματα μείωσης του θορύβου αλλά προκαλούν θόλωση της εικόνας.
+
+Ο αλγόριθμος αρχικά αυξάνει την φωτηνότητα των pixel που είναι σκοτεινότερα από τους γείτονες του και μετα μειώνοντας την φωτηνότητα των pixel που είναι φωτεινότερα από τους γείτονες του.
+
+\end{document}
