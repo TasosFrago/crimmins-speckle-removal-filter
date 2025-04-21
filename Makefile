@@ -13,8 +13,7 @@ FLAGS += $(INCLUDES)
 
 C_SRCS = ./src/speckle_removal.c \
 	 ./src/utils.c \
-	 ./src/crimmins.c \
-	 ./src/test.c
+	 ./src/crimmins.c
 
 C_OBJS = $(C_SRCS:.c=.o)
 
