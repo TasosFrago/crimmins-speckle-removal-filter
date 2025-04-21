@@ -33,15 +33,19 @@ void image_validator(uint8_t *image1, uint8_t *image2, uint32_t width, uint32_t 
 	int idx = 0;
 	FILE *resf = fopen("out.log", "w");
 	assert(resf != NULL);
-
 	int sum = 0;
+
+	#pragma omp parallel for private(idx)
 	for(int y = 0; y < height; y++) {
 		for(int x = 0; x < width; x++) {
 			idx = y * width + x;
 			if(image1[idx] != image2[idx]) {
-				error_cnt++;
-				sum += abs(image1[idx] - image2[idx]);
-				fprintf(resf ,"Error on pixel (%d,\t%d),\t with %d\n", x, y, (image1[idx] - image2[idx]));
+				#pragma omp critical
+				{
+					error_cnt++;
+					sum += abs(image1[idx] - image2[idx]);
+					fprintf(resf ,"Error on pixel (%d,\t%d),\t with %d\n", x, y, (image1[idx] - image2[idx]));
+				}
 			}
 		}
 	}
