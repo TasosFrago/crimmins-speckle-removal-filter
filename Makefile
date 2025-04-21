@@ -27,8 +27,14 @@ $(TARGET): $(C_OBJS)
 %.o: %.c
 	$(CC) $(FLAGS) -c $< -o $@
 
+asm: $(C_SRCS:.c=.s)
+
+%.s: %.c
+	$(CC) $(FLAGS) -S $< -o $@
+
 .PHONY: clean
 
 clean:
 	rm -f $(TARGET)
 	rm -f $(C_OBJS)
+	rm -f $(C_SRCS:.c=.s)

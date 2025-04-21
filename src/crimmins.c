@@ -72,7 +72,7 @@ void crimmings_speckle_removal_filter(uint8_t *image, uint32_t width, uint32_t h
 
 void pass_func_par(uint8_t *image, uint8_t *tmp_image, uint32_t width, uint32_t height, int dx, int dy, uint8_t (*pass_logic_func)(uint8_t, uint8_t, uint8_t), int chunk)
 {
-	#pragma omp parallel for schedule(static)
+	#pragma omp parallel for schedule(static, chunk)
 	for(int y = 1; y < height - 1; y++) {
 		uint8_t *row_a = tmp_image + (y-dy) * width;
 		uint8_t *row_b = tmp_image + y * width;
