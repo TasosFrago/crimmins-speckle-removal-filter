@@ -14,6 +14,7 @@
 int main(int argc, char *argv[])
 {
 	// target image/path output/path [width] [height] [num of passes]
+	// OMP_PLACES=cores OMP_PROC_BIND=close OMP_NUM_THREADS=2
 	if(argc < 5) {
 		fprintf(stderr, "Not enough input arguments given.\n");
 		fprintf(stderr, "USAGE: %s path/to/input/image path/to/output/image [width] [height] [optional num of passes]\n", argv[0]);

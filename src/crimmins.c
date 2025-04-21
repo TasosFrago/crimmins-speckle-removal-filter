@@ -101,6 +101,7 @@ void crimmings_speckle_removal_filter_par(uint8_t *image, uint32_t width, uint32
 	uint8_t *tmp_image = malloc(width * height);
 	assert(tmp_image != NULL && "Failed allocating temp image buffer");
 	const int chunk = height / omp_get_max_threads();
+	printf("Num of threads: %d,\t", omp_get_max_threads());
 	// const int chunk = 8;
 	printf("Chunk = %d\n", chunk);
 

@@ -164,4 +164,31 @@ void pass_func(uint8_t *image, uint8_t *tmp_image, uint32_t width,
 
 Στον Crimmins Speckle removal αλγόριθμο το μόνο που πρέπει να παραμένει σειριακό είναι η σειρά με την οποία κάνουμε τα περάσματα για την διόρθωση των pixel για κάθε κατεύθυνση. Για τον λόγο αυτό επέλεξα να παραλληλοποιήσω την συνάρτηση που είναι υπεύθυνη για αυτά τα περάσματα. Έκανα την εξωτερική for loop παράλληλη έτσι ώστε να χωριστεί η εικόνα σε $\nicefrac{\Large n}{\Large p}$ κομμάτια όπου n οι γραμμές της εικόνας και p οι πυρήνες του συστήματος.
 
+\begin{minted}[breaklines, breaksymbolright={}, breaksymbolleft={}, bgcolor=paraiso-light]{c}
+void pass_func_par(uint8_t *image, uint8_t *tmp_image, uint32_t width,
+    uint32_t height, int dx, int dy,
+    uint8_t (*pass_logic_func)(uint8_t, uint8_t, uint8_t), int chunk)
+{
+    #pragma omp parallel for schedule(static, chunk)
+    for(int y = 1; y < height - 1; y++) {
+        uint8_t *row_a = tmp_image + (y-dy) * width;
+        uint8_t *row_b = tmp_image + y * width;
+        uint8_t *row_c = tmp_image + (y+dy) * width;
+        uint8_t *row_out = image + y * width;
+
+        for(int x = 1; x < width - 1; x++) {
+            uint8_t a = row_a[x-dx];
+            uint8_t b = row_b[x];
+            uint8_t c = row_c[x+dx];
+
+            b = pass_logic_func(a, b, c);
+
+            row_out[x] = (b < 0) ? 0 :
+                (b > 255) ? 255 :
+                 b;
+        }
+    }
+}
+\end{minted}
+
 \end{document}
