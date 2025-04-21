@@ -79,7 +79,6 @@ void pass_func_par(uint8_t *image, uint8_t *tmp_image, uint32_t width, uint32_t 
 		uint8_t *row_c = tmp_image + (y+dy) * width;
 		uint8_t *row_out = image + y * width;
 
-		#pragma omp simd
 		for(int x = 1; x < width - 1; x++) {
 			// uint8_t a = tmp_image[(y-dy) * width + (x-dx)];
 			// uint8_t b = tmp_image[y * width + x]; // middle
