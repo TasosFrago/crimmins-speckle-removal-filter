@@ -8,10 +8,11 @@ import tempfile
 import shutil
 
 THREAD_COUNTS = [1, 2, 4, 8, 16, 32, 64]
+SEPERATOR = "\t"
 
 def measure_speedups(exe, image, output, w, h, iters):
-    """Run speckle for all THREAD_COUNTS and return dict t→speedup."""
-    speedups = {}
+    """Run speckle for all THREAD_COUNTS and return dict t → (serial, parallel, speedup)."""
+    results = {}
     for t in THREAD_COUNTS:
         env = os.environ.copy()
         env["OMP_NUM_THREADS"]   = str(t)
@@ -26,17 +27,32 @@ def measure_speedups(exe, image, output, w, h, iters):
         if proc.returncode != 0:
             raise RuntimeError(f"[threads={t}] exited {proc.returncode}:\n{proc.stderr}")
 
-        m = re.search(r"Speedup:\s*([\d.]+)", proc.stdout)
-        if not m:
-            raise RuntimeError(f"[threads={t}] no Speedup line in:\n{proc.stdout}")
-        print(f"Parsed Speedup {float(m.group(1))}")
-        speedups[t] = float(m.group(1))
-    return speedups
+        # Parse times and speedup (allow newlines between labels and numbers)
+        serial_match = re.search(
+            r"Serial algorithm[\s\S]*?Time taken:\s*([0-9.]+)s",
+            proc.stdout
+        )
+        parallel_match = re.search(
+            r"Parallel algorithm[\s\S]*?Time taken:\s*([0-9.]+)s",
+            proc.stdout
+        )
+        speedup_match = re.search(r"Speedup:\s*([0-9.]+)", proc.stdout)
+
+        if not (serial_match and parallel_match and speedup_match):
+            raise RuntimeError(f"[threads={t}] could not find all timing data in:\n{proc.stdout}")
+
+        serial_time = float(serial_match.group(1))
+        parallel_time = float(parallel_match.group(1))
+        speedup = float(speedup_match.group(1))
+
+        print(f"\tThreads={t}: Serial={serial_time:.6f}s, Parallel={parallel_time:.6f}s, Speedup={speedup:.4f}")
+        results[t] = (serial_time, parallel_time, speedup)
+    return results
 
 def load_csv(path):
     """Return header_list, rows_list (each a list of strings)."""
     with open(path, newline="") as f:
-        reader = csv.reader(f)
+        reader = csv.reader(f, delimiter=SEPERATOR)
         data = list(reader)
     if not data:
         raise RuntimeError("Existing CSV is empty")
@@ -49,7 +65,7 @@ def write_csv(path, header, rows):
     os.close(fd)
     try:
         with open(tmp, "w", newline="") as f:
-            writer = csv.writer(f)
+            writer = csv.writer(f, delimiter=SEPERATOR)
             writer.writerow(header)
             writer.writerows(rows)
         shutil.move(tmp, path)
@@ -73,11 +89,12 @@ def main():
                    help="iterations for speckle")
     args = p.parse_args()
 
-    img_name = os.path.basename(args.image) + " / " + str(args.iters)
+    img_key = os.path.basename(args.image) + f"/{args.iters}"
+    headers_for_img = [f"{img_key} (serial)", f"{img_key} (parallel)", f"{img_key} (speedup)"]
 
     # 1) measure
-    print(f"Measuring speedups for `{img_name}` …")
-    speeds = measure_speedups(
+    print(f"Measuring speedups for `{img_key}` …")
+    results = measure_speedups(
         exe="./speckle",
         image=args.image,
         output=args.output,
@@ -91,9 +108,6 @@ def main():
         header, rows = load_csv(args.csv)
         if header[0] != "threads":
             raise RuntimeError("First column of CSV must be 'threads'")
-        # if img_name in header:
-        #     raise RuntimeError(f"Column '{img_name}' already exists in {args.csv}")
-        # map existing rows by thread
         thread_to_row = { int(r[0]) : r for r in rows }
     else:
         header = ["threads"]
@@ -102,23 +116,26 @@ def main():
         for t in THREAD_COUNTS:
             thread_to_row[t] = [ str(t) ]
 
-    # 3) append new column header
-    header.append(img_name)
+    # 3) append new column headers
+    header.extend(headers_for_img)
 
     # 4) build new rows in order of THREAD_COUNTS
     new_rows = []
     for t in THREAD_COUNTS:
         row = thread_to_row.get(t)
         if row is None:
-            # if CSV had missing thread, initialize it
-            row = [ str(t) ] + [""]*(len(header)-2)
-        # append our new speedup
-        row.append(f"{speeds[t]:.4f}")
+            row = [ str(t) ] + [""] * (len(header) - 4)
+        serial_time, parallel_time, speedup = results[t]
+        row.extend([
+            f"{serial_time:.6f}",
+            f"{parallel_time:.6f}",
+            f"{speedup:.4f}"
+        ])
         new_rows.append(row)
 
     # 5) write CSV back
     write_csv(args.csv, header, new_rows)
-    print(f"✅ Updated {args.csv} with column '{img_name}'")
+    print(f"✅ Updated {args.csv} with columns for '{img_key}'")
 
 if __name__ == "__main__":
     main()

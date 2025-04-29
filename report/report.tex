@@ -17,10 +17,25 @@
 \usepackage{xcolor}
 \usepackage{minted}
 \usepackage{varwidth}
+
+\usepackage[
+    backend=biber,
+    sorting=nyt
+]{biblatex}
+\addbibresource{references.bib}
+\DefineBibliographyStrings{greek}{
+    andothers = {κ.α}
+}
+\DeclareFieldFormat*{title}{\textnormal{#1}}
 %\usepackage[utf8]{inputenc}
 %\usepackage[greek,english]{babel}
 \setdefaultlanguage[variant=monotonic]{greek}
 \setotherlanguage{english}
+
+\usepackage[colorlinks=true,
+            linkcolor=blue,
+            urlcolor=blue,
+            citecolor=blue]{hyperref}
 
 \setmainfont[Scale=1.09]{DejaVuSans}
 \newfontfamily\greekfont[Scale=1.09]{FreeSerif}
@@ -191,4 +206,8 @@ void pass_func_par(uint8_t *image, uint8_t *tmp_image, uint32_t width,
 }
 \end{minted}
 
+\newpage
+\vspace{1.5em}
+\nocite{*}
+\printbibliography
 \end{document}
