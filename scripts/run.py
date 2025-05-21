@@ -7,19 +7,20 @@ import argparse
 import tempfile
 import shutil
 
-THREAD_COUNTS = [1, 2, 4, 8, 16, 32, 64]
+# THREAD_COUNTS = [1, 2, 4, 8, 16, 32, 64]
 SEPERATOR = "\t"
 
-def measure_speedups(exe, image, output, w, h, iters):
+def measure_speedups(exe, image, output, w, h, iters, threads, cuda=False):
     """Run speckle for all THREAD_COUNTS and return dict t → (serial, parallel, speedup)."""
     results = {}
-    for t in THREAD_COUNTS:
+    for t in threads:
         env = os.environ.copy()
-        env["OMP_NUM_THREADS"]   = str(t)
-        env["OMP_PLACES"]        = "cores"
-        env["OMP_PROC_BIND"]     = "close"
+        if not cuda:
+            env["OMP_NUM_THREADS"]   = str(t)
+            env["OMP_PLACES"]        = "cores"
+            env["OMP_PROC_BIND"]     = "close"
 
-        cmd = [exe, image, output, str(w), str(h), str(iters)]
+        cmd = [exe, image, output, str(w), str(h), str(iters)] if not cuda else [exe, image, str(w), str(h), str(iters)]
         proc = subprocess.run(cmd, env=env,
                               stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE,
@@ -45,7 +46,10 @@ def measure_speedups(exe, image, output, w, h, iters):
         parallel_time = float(parallel_match.group(1))
         speedup = float(speedup_match.group(1))
 
-        print(f"\tThreads={t}: Serial={serial_time:.6f}s, Parallel={parallel_time:.6f}s, Speedup={speedup:.4f}")
+        if not cuda:
+            print(f"\tThreads={t}: Serial={serial_time:.6f}s, Parallel={parallel_time:.6f}s, Speedup={speedup:.4f}")
+        else:
+            print(f"\tSerial={serial_time:.6f}s, Parallel cuda={parallel_time:.6f}s, Speedup={speedup:.4f}")
         results[t] = (serial_time, parallel_time, speedup)
     return results
 
@@ -87,10 +91,17 @@ def main():
                    help="CSV file to update")
     p.add_argument("--iters", type=int, default=10,
                    help="iterations for speckle")
+    p.add_argument("--cuda", type=int, default=0,
+                   help="Run cuda instead of openmp")
     args = p.parse_args()
 
     img_key = os.path.basename(args.image) + f"/{args.iters}"
     headers_for_img = [f"{img_key} (serial)", f"{img_key} (parallel)", f"{img_key} (speedup)"]
+
+    if bool(args.cuda):
+        THREAD_COUNTS = [1]
+    else:
+        THREAD_COUNTS = [1, 2, 4, 8, 16, 32, 64]
 
     # 1) measure
     print(f"Measuring speedups for `{img_key}` …")
@@ -100,8 +111,11 @@ def main():
         output=args.output,
         w=args.width,
         h=args.height,
-        iters=args.iters
+        iters=args.iters,
+        threads=THREAD_COUNTS,
+        cuda=bool(args.cuda)
     )
+
 
     # 2) load or init CSV
     if os.path.isfile(args.csv):

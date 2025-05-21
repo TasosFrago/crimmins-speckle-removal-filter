@@ -60,7 +60,7 @@ void crimmings_speckle_removal_filter(uint8_t *image, uint32_t width, uint32_t h
 	for(int i = 0; i < iterations; i++) {
 
 		for(int p = 0; p < 8; p++) {
-			pass_func(image, tmp_image, width, height, passes[p].dx, passes[p].dx, passes[p].pass_logic_func);
+			pass_func(image, tmp_image, width, height, passes[p].dx, passes[p].dy, passes[p].pass_logic_func);
 			SWAP(image, tmp_image);
 		}
 	}
@@ -108,7 +108,7 @@ void crimmings_speckle_removal_filter_par(uint8_t *image, uint32_t width, uint32
 	memcpy(tmp_image, image, width * height);
 	for(int i = 0; i < iterations; i++) {
 		for(int p = 0; p < 8; p++) {
-			pass_func_par(image, tmp_image, width, height, passes[p].dx, passes[p].dx, passes[p].pass_logic_func, chunk);
+			pass_func_par(image, tmp_image, width, height, passes[p].dx, passes[p].dy, passes[p].pass_logic_func, chunk);
 			SWAP(image, tmp_image);
 		}
 	}
