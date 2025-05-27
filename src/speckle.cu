@@ -89,7 +89,6 @@ __device__ uint8_t light_pass_logic_dev(uint8_t a, uint8_t b, uint8_t c) {
   return b;
 }
 
-/* Single CUDA kernel per pass */
 __global__ void crimmins_pass_kernel(uint8_t *out, const uint8_t *in, int width,
                                      int height, int dx, int dy, int is_light) {
   int x = blockIdx.x * blockDim.x + threadIdx.x + 1;
@@ -107,7 +106,6 @@ __global__ void crimmins_pass_kernel(uint8_t *out, const uint8_t *in, int width,
   out[y * width + x] = b;
 }
 
-/* Host API: allocate device buffers, launch passes, swap, copy back */
 float crimmings_speckle_removal_filter_cuda(uint8_t *h_image, uint32_t width,
                                             uint32_t height,
                                             uint8_t iterations) {
@@ -119,23 +117,18 @@ float crimmings_speckle_removal_filter_cuda(uint8_t *h_image, uint32_t width,
   cudaEventCreate(&stop);
   cudaEventRecord(start, 0);
 
-  uint8_t *d_buf1 = NULL;
-  uint8_t *d_buf2 = NULL;
-  CHECK_CUDA(cudaMalloc((void **)&d_buf1, bufBytes));
-  CHECK_CUDA(cudaMalloc((void **)&d_buf2, bufBytes));
+  uint8_t *d_in = NULL;
+  uint8_t *d_out = NULL;
+  CHECK_CUDA(cudaMalloc((void **)&d_in, bufBytes));
+  CHECK_CUDA(cudaMalloc((void **)&d_out, bufBytes));
 
-  /* copy host→device into d_buf2 */
-  CHECK_CUDA(cudaMemcpy(d_buf1, h_image, bufBytes, cudaMemcpyHostToDevice));
-  CHECK_CUDA(cudaMemcpy(d_buf2, h_image, bufBytes, cudaMemcpyHostToDevice));
+  CHECK_CUDA(cudaMemcpy(d_in, h_image, bufBytes, cudaMemcpyHostToDevice));
+  CHECK_CUDA(cudaMemcpy(d_out, h_image, bufBytes, cudaMemcpyDeviceToDevice));
 
-  /* block/grid dims */
-  dim3 block = {16, 16, 1};
+  dim3 block = {32, 32, 1};
   dim3 grid = {(uint32_t)((width + block.x - 3) / block.x),
                (uint32_t)((height + block.y - 3) / block.y), 1};
   printf("grid.x = %d, grid.y = %d\n", grid.x, grid.y);
-
-  uint8_t *d_in = d_buf2;
-  uint8_t *d_out = d_buf1;
 
   for (int iter = 0; iter < iterations; iter++) {
     for (int p = 0; p < 8; p++) {
@@ -148,9 +141,6 @@ float crimmings_speckle_removal_filter_cuda(uint8_t *h_image, uint32_t width,
       SWAP(d_out, d_in);
     }
   }
-  // if ((iterations * 8) % 2 == 1) {
-  // 	SWAP(d_out, d_in);
-  // }
   CHECK_CUDA(cudaMemcpy(h_image, d_out, bufBytes, cudaMemcpyDeviceToHost));
 
   cudaEventRecord(stop, 0);
@@ -161,11 +151,9 @@ float crimmings_speckle_removal_filter_cuda(uint8_t *h_image, uint32_t width,
   cudaEventDestroy(start);
   cudaEventDestroy(stop);
 
-  time = time * 1e-3f;
-
   cudaFree(d_buf1);
   cudaFree(d_buf2);
-  return time;
+  return time * 1e-3f;
 }
 
 uint8_t dark_pass_logic(uint8_t a, uint8_t b, uint8_t c) {

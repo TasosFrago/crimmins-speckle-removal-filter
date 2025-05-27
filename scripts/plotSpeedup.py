@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 
 def main():
     # Adjust path if needed
-    df = pd.read_csv('./report/data/result_f1.csv', sep='\t')
+    # df = pd.read_csv('./report/data/result_f1.csv', sep='\t')
+    df = pd.read_csv('./report/data/cuda2.csv', sep='\t')
 
     # X-axis: number of threads/CPUs
     threads = df['threads']
@@ -13,7 +14,7 @@ def main():
         'Mountain30000'  : 'mountain30000.raw/1 (speedup)',
         'Mountain4096'   : 'mountain4096.raw/1 (speedup)',
         'Mountain1024'   : 'mountain1024.raw/1 (speedup)',
-        'Lena256'        : 'lena256.raw/1 (speedup)',
+        'Mri256'        : 'mri256.raw/1 (speedup)',
     }
 
     # Create the plot

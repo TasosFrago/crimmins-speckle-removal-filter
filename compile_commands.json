@@ -1,0 +1,7 @@
+[
+  {
+    "directory": "./src/",
+    "command": "clang++ -x cuda -std=c++17 -I. your_file.cu",
+    "file": "your_file.cu"
+  }
+]
